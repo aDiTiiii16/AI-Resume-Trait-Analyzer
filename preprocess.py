@@ -16,25 +16,34 @@ stop_words = set(stopwords.words("english"))
 
 def preprocess_text(text):
 
-    # Convert text to lowercase
+    text = str(text)
+
     text = text.lower()
 
+    # Remove email addresses
+    text = re.sub(r'\S+@\S+', ' ', text)
+
+    # Remove URLs
+    text = re.sub(r'http\S+|www\S+', ' ', text)
+
+    # Remove phone numbers
+    text = re.sub(r'\+?\d[\d\s-]{8,}', ' ', text)
+
     # Remove numbers
-    text = re.sub(r'\d+', '', text)
+    text = re.sub(r'\d+', ' ', text)
 
-    # Remove punctuation and special characters
-    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    # Remove punctuation
+    text = re.sub(r'[^a-zA-Z\s]', ' ', text)
 
-    # Tokenize the text
+    # Remove extra spaces
+    text = re.sub(r'\s+', ' ', text).strip()
+
     words = word_tokenize(text)
 
-    # Remove stop words and lemmatize
     cleaned_words = []
 
     for word in words:
         if word not in stop_words:
-            cleaned_word = lemmatizer.lemmatize(word)
-            cleaned_words.append(cleaned_word)
+            cleaned_words.append(lemmatizer.lemmatize(word))
 
-    # Join words back into a sentence
     return " ".join(cleaned_words)

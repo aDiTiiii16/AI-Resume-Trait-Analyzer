@@ -7,43 +7,57 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
 from preprocess import preprocess_text
-df = pd.read_csv("dataset/Resume.csv")
-print(df.head())
-df["Cleaned_Resume"] = df["Resume"].apply(preprocess_text)
-print(df[["Resume", "Cleaned_Resume"]].head())
 
-print("Step 1: Creating TF-IDF")
+# Load dataset
+df = pd.read_csv("dataset/Resume.csv")
+
+print("Dataset Loaded Successfully!")
+print(df.head())
+
+# Keep only required columns
+df = df[["Resume_str", "Category"]]
+
+# Remove empty rows
+df.dropna(inplace=True)
+
+# Preprocess resumes
+df["Cleaned_Resume"] = df["Resume_str"].apply(preprocess_text)
+
+print("\nSample Cleaned Data")
+print(df[["Resume_str", "Cleaned_Resume"]].head())
+
+# Convert text to numerical features
 vectorizer = TfidfVectorizer(max_features=5000)
 
-print("Step 2: Transforming text")
 X = vectorizer.fit_transform(df["Cleaned_Resume"])
 
-print("Step 3: Labels")
 y = df["Category"]
 
-print("Step 4: Splitting dataset")
+# Split dataset
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
     test_size=0.2,
-    random_state=42
+    random_state=42,
+    stratify=y
 )
 
-print("Step 5: Training model")
-model = LogisticRegression()
+# Train model
+model = LogisticRegression(max_iter=1000)
 
 model.fit(X_train, y_train)
 
-print("Step 6: Predicting")
+# Predict
 y_pred = model.predict(X_test)
 
-print("Step 7: Accuracy")
-print("Accuracy:", accuracy_score(y_test, y_pred))
+# Accuracy
+print("\nAccuracy:", accuracy_score(y_test, y_pred))
 
+print("\nClassification Report")
 print(classification_report(y_test, y_pred))
 
-print("Step 8: Saving model")
+# Save model
 pickle.dump(model, open("model/model.pkl", "wb"))
 pickle.dump(vectorizer, open("model/vectorizer.pkl", "wb"))
 
-print("Model saved successfully!")
+print("\nModel Saved Successfully!")

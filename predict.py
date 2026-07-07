@@ -9,20 +9,15 @@ vectorizer = pickle.load(open("model/vectorizer.pkl", "rb"))
 
 
 def predict_category(resume_text):
-    # Clean the resume
+
     cleaned_text = preprocess_text(resume_text)
 
-    # Convert to TF-IDF vector
     vector = vectorizer.transform([cleaned_text])
 
-    # Predict category
-    prediction = model.predict(vector)
+    prediction = model.predict(vector)[0]
 
-    return prediction[0]
+    probabilities = model.predict_proba(vector)[0]
 
+    confidence = max(probabilities) * 100
 
-# Test the model
-sample_resume = """
-Managed a team of 12 students during a hackathon.
-"""
-print("Predicted Category:", predict_category(sample_resume))
+    return prediction, round(confidence, 2)

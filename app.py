@@ -57,7 +57,7 @@ if uploaded_file is not None:
 
         resume_text = extract_text(uploaded_file)
 
-        prediction = predict_category(resume_text)
+        prediction, confidence = predict_category(resume_text)
 
         skills = extract_skills(resume_text, role)
 
@@ -68,6 +68,8 @@ if uploaded_file is not None:
         suggestions = generate_suggestions(score, missing)
 
         st.success(f"### ✅ Resume Category: {prediction}")
+
+        st.info(f"🎯 Prediction Confidence: {confidence}%")   
 
         st.metric("⭐ Resume Score", f"{score}/100")
 
