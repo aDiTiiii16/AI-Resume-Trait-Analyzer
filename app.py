@@ -1,17 +1,23 @@
-# Import Libraries
 import streamlit as st
 import pdfplumber
 
 from predict import predict_category
-from skills import extract_skills, calculate_score
+from skills import (
+    extract_skills,
+    calculate_score,
+    get_missing_skills,
+    generate_suggestions
+)
 
 
-# Extract Text from PDF
 def extract_text(uploaded_file):
+
     text = ""
 
     with pdfplumber.open(uploaded_file) as pdf:
+
         for page in pdf.pages:
+
             page_text = page.extract_text()
 
             if page_text:
@@ -20,53 +26,79 @@ def extract_text(uploaded_file):
     return text
 
 
-# Streamlit Page Configuration
 st.set_page_config(
-    page_title="AI Resume Trait Analyzer",
+    page_title="AI Resume Analyzer",
     page_icon="📄",
-    layout="centered"
+    layout="wide"
 )
 
-# Title
-st.title("📄 AI Resume Trait Analyzer")
-st.write("Upload your resume in PDF format and let AI analyze it.")
+st.title("📄 AI Resume Analyzer")
 
+st.write("Upload your resume and compare it with the selected job role.")
 
-# Upload Button
+role = st.selectbox(
+    "🎯 Select Target Role",
+    [
+        "Software Developer",
+        "Full Stack Developer",
+        "Data Analyst",
+        "Machine Learning Engineer"
+    ]
+)
+
 uploaded_file = st.file_uploader(
-    "Choose a Resume",
+    "Upload Resume (PDF)",
     type=["pdf"]
 )
 
-
-# Analyze Button
 if uploaded_file is not None:
 
     if st.button("Analyze Resume"):
 
-        # Extract resume text
         resume_text = extract_text(uploaded_file)
 
-        # Predict category
         prediction = predict_category(resume_text)
 
-        # Extract skills
-        skills = extract_skills(resume_text)
+        skills = extract_skills(resume_text, role)
 
-        # Calculate score
-        score = calculate_score(skills)
+        score = calculate_score(skills, role)
 
-        # Display prediction
-        st.success(f"Predicted Category: **{prediction}**")
+        missing = get_missing_skills(skills, role)
 
-        # Display score
-        st.metric("Resume Score", f"{score}/100")
+        suggestions = generate_suggestions(score, missing)
 
-        # Display detected skills
-        st.subheader("🛠 Detected Skills")
+        st.success(f"### ✅ Resume Category: {prediction}")
 
-        if skills:
-            for skill in skills:
-                st.write(f"✅ {skill.title()}")
+        st.metric("⭐ Resume Score", f"{score}/100")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            st.subheader("🛠 Detected Skills")
+
+            if skills:
+                for skill in skills:
+                    st.success(skill.title())
+            else:
+                st.warning("No matching skills detected.")
+
+        with col2:
+
+            st.subheader("📌 Missing Skills")
+
+            if missing:
+                for skill in missing:
+                    st.error(skill.title())
+            else:
+                st.success("No important skills missing.")
+
+        st.divider()
+
+        st.subheader("💡 Suggestions")
+
+        if suggestions:
+            for suggestion in suggestions:
+                st.write(f"✔ {suggestion}")
         else:
-            st.warning("No skills detected.")
+            st.success("Excellent Resume!")

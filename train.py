@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
 from preprocess import preprocess_text
-df = pd.read_csv("dataset/resume_dataset.csv")
+df = pd.read_csv("dataset/Resume.csv")
 print(df.head())
 df["Cleaned_Resume"] = df["Resume"].apply(preprocess_text)
 print(df[["Resume", "Cleaned_Resume"]].head())
